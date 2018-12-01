@@ -1,0 +1,10 @@
+.*
+!.gitignore
+*.vo
+*.vi
+*.v.d
+*.g
+*.g.html
+*.beautified
+*.old
+*.glob
