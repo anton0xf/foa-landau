@@ -79,76 +79,90 @@ Notation "x + y == z"
 
 Open Scope LN_scope.
 
-Axiom sum_one : forall x : LN,
-    x + L1 == LS x
-    /\ forall z : LN, x + L1 == z -> z = LS x.
+Axiom sum_one : forall x : LN, x + L1 == LS x.
+Axiom sum_one_uniq : forall x z1 z2 : LN,
+    x + L1 == z1 -> x + L1 == z2 -> z1 = z2.
 
-Axiom sum_LS : forall x y z : LN,
-    x + y == z
-    -> x + LS y == LS z
-       /\ forall z' : LN, x + LS y == z' -> z' = LS z.
-
-Theorem sum_one' (x : LN) : x + L1 == LS x.
-Proof. apply sum_one. Qed.
+Axiom sum_LS : forall x y z : LN, x + y == z -> x + LS y == LS z.
+Axiom sum_LS_uniq : forall x y z1 z2 : LN,
+    x + LS y == z1 -> x + LS y == z2 -> z1 = z2.
 
 Theorem sum_one_inv (x z : LN) : x + L1 == z -> z = LS x.
-Proof. intro sum. apply sum_one, sum. Qed.
+Proof.
+  intro H. apply (sum_one_uniq x z (LS x) H), sum_one.
+Qed.
 
 Theorem sum_two (x : LN) : x + L2 == LS (LS x).
 Proof. apply sum_LS, sum_one. Qed.
 
 Theorem sum_two_inv (x z : LN) : x + L2 == z -> z = LS (LS x).
 Proof.
-  intro H. apply (sum_LS x L1 (LS x)); try assumption.
-  apply sum_one'.
+  intro H. apply (sum_LS_uniq x L1 z (LS (LS x)) H).
+  apply sum_LS, sum_one.
 Qed.
 
-Theorem sum_LS_comm (x y z : LN) : x + LS y == LS z <-> LS x + y == LS z.
+Theorem sum_exist (x y : LN) : exists z : LN, x + y == z.
 Proof.
   generalize dependent x.
   generalize dependent y.
-  apply (LS_ind (fun y => forall x, x + LS y == LS z <-> LS x + y == LS z)).
-  - intro x. split; intro H.
-    + apply sum_two_inv in H. apply LS_inj in H. subst z. apply sum_one'.
-    + apply sum_one_inv in H. apply LS_inj in H. subst z. apply sum_two.
-  - intros y IH x. split; intro H.
-    + pose (sum_LS x (LS y) z) as A.
-Admitted.
+  apply (LS_ind (fun y => forall x, exists z : LN, x + y == z)).
+  - intro x. exists (LS x). apply sum_one.
+  - intros y IH x. destruct (IH x) as [z H].
+    exists (LS z). apply sum_LS, H.
+Qed.
+
+Theorem sum_uniq (x y z1 z2 : LN) : x + y == z1 -> x + y == z2 -> z1 = z2.
+Proof.
+  destruct (LN_dec y) as [H | H].
+  - subst y. apply sum_one_uniq.
+  - apply pred_exists in H. destruct H as [y' [H U]].
+    subst y. apply sum_LS_uniq.
+Qed.
+
+Theorem sum_exist_and_not_one (x y : LN)
+  : exists z : LN, x + y == z /\ z <> L1.
+Proof.
+  generalize dependent x.
+  generalize dependent y.
+  apply (LS_ind (fun y => forall x, exists z : LN, x + y == z /\ z <> L1)).
+  - intro x. exists (LS x). split.
+    + apply sum_one.
+    + apply LS_neq_one.
+  - intros y IH x. destruct (IH x) as [z [H neq]].
+    exists (LS z). split.
+    + apply sum_LS, H.
+    + apply LS_neq_one.
+Qed.
 
 Theorem sum_is_not_one (x y : LN) : ~(x + y == L1).
 Proof.
-  generalize dependent y. apply LS_ind.
-  - intro C. apply (LS_neq_one x). symmetry. apply sum_one_inv, C.
-  - intros y IH C.
-Admitted.
-
-Theorem sum_LS' (x y z : LN) : x + y == z -> x + LS y == LS z.
-Proof.
-  intro H. pose (sum_LS x y z) as A.
-  apply A in H. clear A.
-  destruct H as [sum _]. assumption.
+  pose (sum_exist_and_not_one x y) as H.
+  destruct H as [z [sum neq]].
+  intro C. apply neq. apply (sum_uniq x y); assumption.
 Qed.
 
 Theorem sum_LS_eq (x y z z' : LN)
   : x + y == z -> x + LS y == z' -> z' = LS z.
 Proof.
   intros sum sum'.
-  apply sum_LS in sum as H.
-  destruct H as [_ H].
-  apply H, sum'.
+  apply (sum_LS_uniq x y z' (LS z) sum').
+  apply sum_LS, sum.
 Qed.
 
 Theorem sum_LS_inv (x y z : LN) : x + LS y == LS z -> x + y == z.
 Proof.
   generalize dependent z.
+  generalize dependent x.
   generalize dependent y.
-  apply (LS_ind (fun y => forall z, x + LS y == LS z -> x + y == z)).
-  - intros z H. apply sum_two_inv in H.
-    apply LS_inj in H. subst z. apply sum_one'.
-  - intros y IH z' H. destruct (LN_dec z') as [Hz | Hz].
-    + subst z'. admit.
-    + apply pred_exists in Hz.
-Admitted.
+  apply (LS_ind (fun y => forall x z, x + LS y == LS z -> x + y == z)).
+  - intros x z H. apply sum_two_inv in H.
+    apply LS_inj in H. subst z. apply sum_one.
+  - intros y IH x z' H.
+    pose (sum_exist x (LS y)) as sum.
+    destruct sum as [z sum]. apply sum_LS in sum as sum'.
+    pose (sum_LS_uniq x (LS y) (LS z') (LS z) H sum') as eq.
+    apply LS_inj in eq. subst z'. assumption.
+Qed.
 
 (* Theorem 4 *)
 Theorem sum_exists : forall x y, exists z, x + y == z.
@@ -158,13 +172,6 @@ Proof.
   - intros y [z IH]. exists (LS z).
     apply sum_LS'. assumption.
 Qed.
-
-Theorem sum_neq_L1 (x y z : LN) : x + y == z -> z <> L1.
-Proof.
-  intro H. pose (LN_dec y) as D.
-  destruct D as [D | D].
-  - subst y.
-Admitted.
 
 Theorem sum_eq (x y z1 z2 : LN) : x + y == z1 -> x + y == z2 -> z1 = z2.
 Proof.
@@ -193,6 +200,23 @@ Proof.
   split; try assumption.
   intro z'. apply sum_eq. assumption.
 Qed.
+
+Theorem sum_LS_comm (x y z : LN) : x + LS y == z -> LS x + y == z.
+Proof.
+  generalize dependent z.
+  generalize dependent x.
+  generalize dependent y.
+  apply (LS_ind (fun y => forall x z, x + LS y == z -> LS x + y == z)).
+  - intros x z H. apply sum_two_inv in H. subst z. apply sum_one.
+  - intros y IH x z H. (* apply sum_LS. rewrite <- IH. *)
+Admitted.
+
+Theorem sum_neq_L1 (x y z : LN) : x + y == z -> z <> L1.
+Proof.
+  intro H. pose (LN_dec y) as D.
+  destruct D as [D | D].
+  - subst y.
+Admitted.
 
 Definition Lsum : forall x y, {z | x + y == z}.
   (* Не понятно, как определить сумму, как функцию, даже если доказано,
