@@ -82,19 +82,9 @@ Open Scope LN_scope.
 Axiom sum_one : forall x : LN, x + L1 = LS x.
 Axiom sum_LS : forall x y : LN, x + LS y = LS (x + y).
 
-(* TODO rm *)
-Theorem sum_one_inv (x z : LN) : x + L1 = z -> z = LS x.
-Proof. intro H. subst z. apply sum_one. Qed.
-
 Theorem sum_two (x : LN) : x + L2 = LS (LS x).
 Proof.
   unfold L2. rewrite sum_LS, sum_one. reflexivity.
-Qed.
-
-(* TODO rm *)
-Theorem sum_two_inv (x z : LN) : x + L2 = z -> z = LS (LS x).
-Proof.
-  intro H. subst z. apply sum_two.
 Qed.
 
 (* Theorem 4 *)
@@ -108,7 +98,6 @@ Proof.
     exists (LS z). subst z. apply sum_LS.
 Qed.
 
-(* TODO rm *)
 Theorem sum_uniq (x y z1 z2 : LN) : x + y = z1 -> x + y = z2 -> z1 = z2.
 Proof. intros H1 H2. subst z1 z2. reflexivity. Qed.
 
@@ -140,25 +129,21 @@ Proof.
   intros sum sum'. subst z z'. apply sum_LS.
 Qed.
 
-(* TODO rm *)
-Theorem sum_LS_inv (x y z : LN) : x + LS y = LS z -> x + y = z.
-Proof.
-  intro H. rewrite sum_LS in H. now apply LS_inj in H.
-Qed.
-
-(* TODO rm *)
 Theorem sum_eq (x y z1 z2 : LN) : x + y = z1 -> x + y = z2 -> z1 = z2.
 Proof.
   intros H1 H2. subst z1 z2. reflexivity.
 Qed.
 
-(* TODO rm *)
+Theorem fun_is_fun (A : Type) (f : A -> A) (x : A)
+  : exists ! y, f x = y.
+Proof.
+  exists (f x). split; try reflexivity.
+  intros y' H. subst y'. reflexivity.
+Qed.
+
 Theorem sum_is_fun : forall x y, exists ! z, x + y = z.
 Proof.
-  intros x y. pose (sum_exists x y) as E.
-  destruct E as [z eq]. exists z.
-  split; try assumption.
-  intros z' H. subst z z'. reflexivity.
+  intros x y. apply (fun_is_fun LN (Lsum x) y).
 Qed.
 
 Theorem sum_LS_comm (x y z : LN) : x + LS y = z -> LS x + y = z.
@@ -171,8 +156,3 @@ Proof.
   - intros y IH x z H. subst z. repeat rewrite sum_LS.
     apply LS_eq, IH. rewrite sum_LS. reflexivity.
 Qed.
-
-Definition Lsumf : forall x y, {z | x + y = z}.
-  (* Не понятно, как определить сумму, как функцию, даже если доказано,
-     что это функция *)
-Admitted.
