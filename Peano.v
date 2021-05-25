@@ -131,13 +131,12 @@ Proof.
   intros x y. apply (fun_is_fun LN (Lsum x) y).
 Qed.
 
-Theorem sum_LS_comm (x y z : LN) : x + LS y = z -> LS x + y = z.
+Theorem sum_LS_comm (x y : LN) : x + LS y = LS x + y.
 Proof.
-  generalize dependent z.
   generalize dependent x.
   generalize dependent y.
-  apply (LS_ind (fun y => forall x z, x + LS y = z -> LS x + y = z)).
-  - intros x z H. subst z. rewrite sum_two, sum_one. reflexivity.
-  - intros y IH x z H. subst z. repeat rewrite sum_LS.
-    apply LS_eq, IH. rewrite sum_LS. reflexivity.
+  apply (LS_ind (fun y => forall x, x + LS y = LS x + y)).
+  - intro x. rewrite sum_two, sum_one. reflexivity.
+  - intros y IH x. rewrite sum_LS. rewrite IH.
+    rewrite sum_LS. apply LS_eq. reflexivity.
 Qed.
