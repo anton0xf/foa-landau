@@ -6,3 +6,15 @@ Book:
 
 References:
 * [Formalization of the Equivalence among Completeness Theorems of Real Number in Coq](https://www.mdpi.com/2227-7390/9/1/38/htm)
+
+# Build
+```sh
+# generate Makefile
+$ coq_makefile -f _CoqProject -o Makefile
+
+# build
+$ make
+
+# regenerate Makefile
+$ make Makefile.conf
+```

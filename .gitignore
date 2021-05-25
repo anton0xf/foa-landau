@@ -1,10 +1,8 @@
 .*
 !.gitignore
-*.vo
-*.vi
-*.v.d
-*.g
-*.g.html
-*.beautified
-*.old
+Makefile
+Makefile.conf
+*.vok
+*.vos
 *.glob
+*.vo
