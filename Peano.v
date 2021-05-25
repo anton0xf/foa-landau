@@ -89,38 +89,23 @@ Qed.
 
 (* Theorem 4 *)
 Theorem sum_exists (x y : LN) : exists z : LN, x + y = z.
-Proof.
-  generalize dependent x.
-  generalize dependent y.
-  apply (LS_ind (fun y => forall x, exists z : LN, x + y = z)).
-  - intro x. exists (LS x). apply sum_one.
-  - intros y IH x. destruct (IH x) as [z H].
-    exists (LS z). subst z. apply sum_LS.
-Qed.
+Proof. exists (x + y). reflexivity. Qed.
 
 Theorem sum_uniq (x y z1 z2 : LN) : x + y = z1 -> x + y = z2 -> z1 = z2.
 Proof. intros H1 H2. subst z1 z2. reflexivity. Qed.
 
-Theorem sum_exist_and_not_one (x y : LN)
-  : exists z : LN, x + y = z /\ z <> L1.
+Theorem sum_is_LS (x y : LN) : exists z, x + y = LS z.
 Proof.
-  generalize dependent x.
-  generalize dependent y.
-  apply (LS_ind (fun y => forall x, exists z : LN, x + y = z /\ z <> L1)).
-  - intro x. exists (LS x). split.
-    + apply sum_one.
-    + apply LS_neq_one.
-  - intros y IH x. destruct (IH x) as [z [H neq]].
-    exists (LS z). split.
-    + subst z. apply sum_LS.
-    + apply LS_neq_one.
+  generalize dependent y. apply LS_ind.
+  - exists x. apply sum_one.
+  - intros y H. destruct H as [z H].
+    exists (LS z). rewrite sum_LS. apply LS_eq, H.
 Qed.
 
 Theorem sum_is_not_one (x y : LN) : ~(x + y = L1).
 Proof.
-  pose (sum_exist_and_not_one x y) as H.
-  destruct H as [z [sum neq]].
-  intro C. apply neq. apply (sum_uniq x y); assumption.
+  pose (sum_is_LS x y) as H. destruct H as [z H].
+  rewrite H. apply LS_neq_one.
 Qed.
 
 Theorem sum_LS_eq (x y z z' : LN)
